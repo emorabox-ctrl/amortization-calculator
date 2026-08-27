@@ -2,7 +2,7 @@
 
 Programa en Python que calcula la tabla de amortización de un préstamo, 
 mostrando cuota, interés, capital y saldo pendiente mes a mes. Incluye 
-soporte para simular pagos extraordinarios (abonos a capital).
+soporte para pagos extraordinarios y comparación entre tasa fija y variable.
 
 ## Motivación
 
@@ -16,8 +16,10 @@ conocimiento del dominio para construir una herramienta útil desde cero.
 - Tabla de amortización completa: cuota, interés, capital y saldo por mes
 - Manejo del caso especial de tasa de interés 0%
 - Simulación de abonos extraordinarios a capital, que reducen el plazo del préstamo
+- Comparación entre un escenario de tasa fija y uno de tasa variable (con tramos definidos por el usuario), incluyendo recálculo automático de la cuota cuando cambia la tasa
+- Menú interactivo para elegir entre calcular una amortización simple o comparar escenarios
 - Validación de entradas del usuario (rechaza texto inválido y valores negativos)
-- Suite de tests automatizados con pytest
+- Suite de 8 tests automatizados con pytest
 
 ## Cómo ejecutarlo
 
@@ -27,14 +29,16 @@ Requisitos: Python 3.x instalado.
 python main.py
 ```
 
-El programa te pedirá:
-- Monto del préstamo
-- Tasa de interés anual (%)
-- Plazo en meses
-- Si quieres simular abonos extraordinarios (opcional), indicando el mes y monto de cada uno
+El programa muestra un menú con dos opciones:
 
-Y mostrará la tabla completa de amortización, incluyendo el total de meses 
-pagados (que puede ser menor al plazo original si se simularon abonos).
+**1. Calcular tabla de amortización (tasa fija)**
+Pide monto, tasa anual y plazo, con la opción de simular abonos extraordinarios 
+a capital (indicando mes y monto de cada uno).
+
+**2. Comparar tasa fija vs tasa variable**
+Pide monto, plazo, una tasa fija de referencia, y los tramos de tasa variable 
+(mes en que cambia y nueva tasa). Muestra el total pagado e interés total 
+de cada escenario, y cuál resulta más económico.
 
 ## Cómo correr los tests
 
@@ -44,6 +48,11 @@ python -m pytest
 
 ## Estructura del proyecto
 
-- `main.py`: interacción con el usuario (entrada de datos, presentación de resultados)
-- `amortizacion.py`: lógica de cálculo (cuota, tabla de amortización, abonos extra)
-- `test_amortizacion.py`: tests automatizados
+- `main.py`: interacción con el usuario (menú, entrada de datos, presentación de resultados)
+- `amortizacion.py`: lógica de cálculo (cuota, tabla de amortización, abonos extra, tasa variable, comparación de escenarios)
+- `test_amortizacion.py`: tests automatizados con pytest
+
+## Próximas mejoras
+
+- Exportar tabla a Excel/PDF
+- Interfaz web simple con Streamlit
