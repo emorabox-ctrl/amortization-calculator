@@ -64,3 +64,84 @@ def generar_tabla_amortizacion(monto, tasa_anual, plazo_meses, abonos_extra=None
         mes += 1
     
     return tabla
+
+def generar_tabla_tasa_variable(monto, tramos, plazo_meses, abonos_extra=None):
+    """
+    Genera la tabla de amortización cuando la tasa de interés cambia en el tiempo.
+    
+    tramos: diccionario {mes_desde: tasa_anual}, ej. {1: 10, 13: 14, 25: 8}
+            significa que desde el mes 1 la tasa es 10%, desde el mes 13 cambia a 14%, etc.
+    Cada vez que cambia la tasa, se recalcula la cuota usando el saldo pendiente
+    como nuevo monto y los meses restantes como nuevo plazo.
+    """
+    if abonos_extra is None:
+        abonos_extra = {}
+    
+    saldo = monto
+    tabla = []
+    mes = 1
+    tasa_actual = tramos[1]  # la tasa del mes 1 siempre debe existir
+    meses_restantes = plazo_meses
+    cuota = calcular_cuota(saldo, tasa_actual, meses_restantes)
+    
+    while saldo > 0.01 and mes <= plazo_meses:
+        # ¿Cambia la tasa en este mes?
+        if mes in tramos:
+            tasa_actual = tramos[mes]
+            meses_restantes = plazo_meses - mes + 1
+            cuota = calcular_cuota(saldo, tasa_actual, meses_restantes)
+        
+        tasa_mensual = (tasa_actual / 100) / 12
+        
+        if tasa_mensual == 0:
+            interes = 0
+        else:
+            interes = saldo * tasa_mensual
+        
+        capital = cuota - interes
+        abono = abonos_extra.get(mes, 0)
+        
+        if capital + abono > saldo:
+            capital = saldo - abono if saldo - abono > 0 else saldo
+            abono = saldo - capital if capital == saldo else abono
+        
+        saldo = saldo - capital - abono
+        if saldo < 0:
+            saldo = 0
+        
+        tabla.append({
+            "mes": mes,
+            "tasa_anual": tasa_actual,
+            "cuota": cuota,
+            "interes": interes,
+            "capital": capital,
+            "abono_extra": abono,
+            "saldo": saldo
+        })
+        
+        mes += 1
+    
+    return tabla
+
+def comparar_escenarios(monto, tasa_fija, tramos_variable, plazo_meses):
+    """
+    Compara el total pagado en un escenario de tasa fija vs uno de tasa variable.
+    
+    Devuelve un diccionario con el resumen de ambos escenarios.
+    """
+    tabla_fija = generar_tabla_amortizacion(monto, tasa_fija, plazo_meses)
+    tabla_variable = generar_tabla_tasa_variable(monto, tramos_variable, plazo_meses)
+    
+    total_interes_fija = sum(fila["interes"] for fila in tabla_fija)
+    total_interes_variable = sum(fila["interes"] for fila in tabla_variable)
+    
+    total_pagado_fija = sum(fila["cuota"] for fila in tabla_fija)
+    total_pagado_variable = sum(fila["cuota"] for fila in tabla_variable)
+    
+    return {
+        "total_interes_fija": total_interes_fija,
+        "total_interes_variable": total_interes_variable,
+        "total_pagado_fija": total_pagado_fija,
+        "total_pagado_variable": total_pagado_variable,
+        "diferencia": total_pagado_variable - total_pagado_fija
+    }

@@ -1,4 +1,4 @@
-from amortizacion import calcular_cuota, generar_tabla_amortizacion
+from amortizacion import calcular_cuota, generar_tabla_amortizacion, generar_tabla_tasa_variable, comparar_escenarios
 
 def test_calcular_cuota_basico():
     resultado = calcular_cuota(100000, 12, 36)
@@ -41,3 +41,32 @@ def test_tabla_con_abono_extra_reduce_plazo():
     
     # El saldo final debe llegar a 0 (con tolerancia por redondeo)
     assert abs(tabla_con_abono[-1]["saldo"]) < 1
+
+def test_tabla_tasa_variable_cambia_cuota_correctamente():
+    tabla = generar_tabla_tasa_variable(100000, {1: 10, 13: 14}, 24)
+    
+    # Los primeros 12 meses deben tener tasa 10%
+    for fila in tabla[:12]:
+        assert fila["tasa_anual"] == 10
+    
+    # A partir del mes 13, la tasa debe ser 14%
+    for fila in tabla[12:]:
+        assert fila["tasa_anual"] == 14
+    
+    # La cuota debe cambiar en el mes 13 (índice 12)
+    assert tabla[11]["cuota"] != tabla[12]["cuota"]
+    
+    # El saldo final debe llegar a 0
+    assert abs(tabla[-1]["saldo"]) < 1
+
+def test_comparar_escenarios_estructura_correcta():
+    resultado = comparar_escenarios(100000, 12, {1: 10, 13: 14}, 24)
+    
+    # Verifica que existan todas las claves esperadas
+    claves_esperadas = {"total_interes_fija", "total_interes_variable", 
+                         "total_pagado_fija", "total_pagado_variable", "diferencia"}
+    assert set(resultado.keys()) == claves_esperadas
+    
+    # La diferencia debe ser consistente con los totales pagados
+    diferencia_calculada = resultado["total_pagado_variable"] - resultado["total_pagado_fija"]
+    assert round(resultado["diferencia"], 2) == round(diferencia_calculada, 2)
