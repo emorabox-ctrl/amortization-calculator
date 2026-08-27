@@ -1,3 +1,5 @@
+from openpyxl import Workbook
+
 def calcular_cuota(monto, tasa_anual, plazo_meses):
     """
     Calcula la cuota mensual fija de un préstamo.
@@ -145,3 +147,41 @@ def comparar_escenarios(monto, tasa_fija, tramos_variable, plazo_meses):
         "total_pagado_variable": total_pagado_variable,
         "diferencia": total_pagado_variable - total_pagado_fija
     }
+
+
+def exportar_a_excel(tabla, nombre_archivo="tabla_amortizacion.xlsx"):
+    """
+    Exporta una tabla de amortización a un archivo Excel.
+    
+    tabla: lista de diccionarios generada por generar_tabla_amortizacion,
+           generar_tabla_tasa_variable, etc.
+    nombre_archivo: nombre del archivo .xlsx a crear
+    """
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Amortizacion"
+    
+    tiene_tasa = "tasa_anual" in tabla[0]
+    
+    if tiene_tasa:
+        encabezados = ["Mes", "Tasa %", "Cuota", "Interés", "Capital", "Abono Extra", "Saldo"]
+    else:
+        encabezados = ["Mes", "Cuota", "Interés", "Capital", "Abono Extra", "Saldo"]
+    
+    ws.append(encabezados)
+    
+    for fila in tabla:
+        if tiene_tasa:
+            ws.append([
+                fila["mes"], fila["tasa_anual"], round(fila["cuota"], 2),
+                round(fila["interes"], 2), round(fila["capital"], 2),
+                round(fila["abono_extra"], 2), round(fila["saldo"], 2)
+            ])
+        else:
+            ws.append([
+                fila["mes"], round(fila["cuota"], 2), round(fila["interes"], 2),
+                round(fila["capital"], 2), round(fila["abono_extra"], 2), round(fila["saldo"], 2)
+            ])
+    
+    wb.save(nombre_archivo)
+    return nombre_archivo

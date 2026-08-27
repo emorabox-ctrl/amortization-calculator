@@ -1,4 +1,4 @@
-from amortizacion import generar_tabla_amortizacion, generar_tabla_tasa_variable, comparar_escenarios
+from amortizacion import generar_tabla_amortizacion, generar_tabla_tasa_variable, comparar_escenarios, exportar_a_excel
 
 def pedir_numero(mensaje, tipo=float):
     while True:
@@ -91,6 +91,17 @@ def mostrar_tabla(tabla):
     
     print(f"\nTotal de meses pagados: {len(tabla)}")
 
+def preguntar_exportar(tabla):
+    respuesta = input("\n¿Quieres exportar esta tabla a Excel? (s/n): ").strip().lower()
+    if respuesta == "s":
+        nombre = input("Nombre del archivo (Enter para usar 'tabla_amortizacion.xlsx'): ").strip()
+        if nombre == "":
+            nombre = "tabla_amortizacion.xlsx"
+        if not nombre.endswith(".xlsx"):
+            nombre += ".xlsx"
+        archivo_generado = exportar_a_excel(tabla, nombre)
+        print(f"Archivo guardado como: {archivo_generado}")
+
 def mostrar_comparacion(resultado):
     print("\n===== Comparación: Tasa Fija vs Tasa Variable =====")
     print(f"Total pagado (tasa fija):      {resultado['total_pagado_fija']:.2f}")
@@ -111,6 +122,7 @@ def flujo_amortizacion_normal():
     abonos_extra = pedir_abonos_extra()
     tabla = generar_tabla_amortizacion(monto, tasa_anual, plazo_meses, abonos_extra)
     mostrar_tabla(tabla)
+    preguntar_exportar(tabla)
 
 def flujo_comparacion():
     monto = pedir_numero("Monto del préstamo: ", float)

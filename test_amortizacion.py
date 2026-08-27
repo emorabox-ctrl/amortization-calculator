@@ -1,4 +1,5 @@
-from amortizacion import calcular_cuota, generar_tabla_amortizacion, generar_tabla_tasa_variable, comparar_escenarios
+import os
+from amortizacion import calcular_cuota, generar_tabla_amortizacion, generar_tabla_tasa_variable, comparar_escenarios, exportar_a_excel
 
 def test_calcular_cuota_basico():
     resultado = calcular_cuota(100000, 12, 36)
@@ -70,3 +71,16 @@ def test_comparar_escenarios_estructura_correcta():
     # La diferencia debe ser consistente con los totales pagados
     diferencia_calculada = resultado["total_pagado_variable"] - resultado["total_pagado_fija"]
     assert round(resultado["diferencia"], 2) == round(diferencia_calculada, 2)
+
+
+def test_exportar_a_excel_crea_archivo():
+    tabla = generar_tabla_amortizacion(100000, 12, 12)
+    nombre_archivo = "test_export_temp.xlsx"
+    
+    resultado = exportar_a_excel(tabla, nombre_archivo)
+    
+    assert resultado == nombre_archivo
+    assert os.path.exists(nombre_archivo)
+    
+    # Limpieza: borramos el archivo de prueba para no dejar basura
+    os.remove(nombre_archivo)
