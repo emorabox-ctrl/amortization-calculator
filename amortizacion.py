@@ -8,6 +8,9 @@ def calcular_cuota(monto, tasa_anual, plazo_meses):
     """
     tasa_mensual = (tasa_anual / 100) / 12
     
+    if tasa_mensual == 0:
+        return monto / plazo_meses
+    
     cuota = monto * (tasa_mensual * (1 + tasa_mensual) ** plazo_meses) / ((1 + tasa_mensual) ** plazo_meses - 1)
     
     return cuota
