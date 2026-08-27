@@ -1,151 +1,162 @@
-from amortizacion import generar_tabla_amortizacion, generar_tabla_tasa_variable, comparar_escenarios, exportar_a_excel
+from loan_amortization import generate_amortization_schedule, generate_variable_rate_schedule, compare_scenarios, export_to_excel
 
-def pedir_numero(mensaje, tipo=float):
+
+def ask_number(message, value_type=float):
     while True:
-        entrada = input(mensaje)
+        entry = input(message)
         try:
-            valor = tipo(entrada)
-            if valor <= 0:
-                print("El valor debe ser mayor a 0. Intenta de nuevo.\n")
+            value = value_type(entry)
+            if value <= 0:
+                print("The value must be greater than 0. Try again.\n")
                 continue
-            return valor
+            return value
         except ValueError:
-            print("Eso no es un número válido. Intenta de nuevo.\n")
+            print("That's not a valid number. Try again.\n")
 
-def pedir_datos():
-    monto = pedir_numero("Monto del préstamo: ", float)
-    tasa_anual = pedir_numero("Tasa de interés anual (%): ", float)
-    plazo_meses = pedir_numero("Plazo en meses: ", int)
-    return monto, tasa_anual, plazo_meses
 
-def pedir_abonos_extra():
-    abonos = {}
-    respuesta = input("\n¿Quieres simular abonos extra a capital? (s/n): ").strip().lower()
+def ask_loan_data():
+    amount = ask_number("Loan amount: ", float)
+    annual_rate = ask_number("Annual interest rate (%): ", float)
+    term_months = ask_number("Term in months: ", int)
+    return amount, annual_rate, term_months
+
+
+def ask_extra_payments():
+    extra_payments = {}
+    answer = input("\nDo you want to simulate extra payments to principal? (y/n): ").strip().lower()
     
-    if respuesta != "s":
-        return abonos
+    if answer != "y":
+        return extra_payments
     
-    print("Ingresa los abonos uno por uno. Cuando termines, deja el mes en blanco y presiona Enter.\n")
+    print("Enter the extra payments one by one. When done, leave the month blank and press Enter.\n")
     
     while True:
-        mes_texto = input("Mes del abono (o Enter para terminar): ").strip()
-        if mes_texto == "":
+        month_text = input("Month of the extra payment (or Enter to finish): ").strip()
+        if month_text == "":
             break
         try:
-            mes = int(mes_texto)
+            month = int(month_text)
         except ValueError:
-            print("Eso no es un número válido de mes. Intenta de nuevo.\n")
+            print("That's not a valid month. Try again.\n")
             continue
         
-        monto_abono = pedir_numero(f"Monto del abono extra en el mes {mes}: ", float)
-        abonos[mes] = monto_abono
+        extra_amount = ask_number(f"Extra payment amount for month {month}: ", float)
+        extra_payments[month] = extra_amount
     
-    return abonos
+    return extra_payments
 
-def pedir_tramos_variable():
-    print("\nDefine los tramos de tasa variable. El primer tramo debe empezar en el mes 1.")
-    print("Cuando termines, deja el mes en blanco y presiona Enter.\n")
+
+def ask_rate_tiers():
+    print("\nDefine the variable rate tiers. The first tier must start at month 1.")
+    print("When done, leave the month blank and press Enter.\n")
     
-    tramos = {}
+    tiers = {}
     while True:
-        mes_texto = input("Mes desde el cual aplica esta tasa (o Enter para terminar): ").strip()
-        if mes_texto == "":
+        month_text = input("Month from which this rate applies (or Enter to finish): ").strip()
+        if month_text == "":
             break
         try:
-            mes = int(mes_texto)
+            month = int(month_text)
         except ValueError:
-            print("Eso no es un número válido de mes. Intenta de nuevo.\n")
+            print("That's not a valid month. Try again.\n")
             continue
         
-        tasa = pedir_numero(f"Tasa anual (%) a partir del mes {mes}: ", float)
-        tramos[mes] = tasa
+        rate = ask_number(f"Annual rate (%) starting month {month}: ", float)
+        tiers[month] = rate
     
-    if 1 not in tramos:
-        print("\nAdvertencia: no definiste una tasa para el mes 1. Se usará la primera tasa que diste para todo el inicio.")
+    if 1 not in tiers:
+        print("\nWarning: you didn't set a rate for month 1. The first rate you gave will be used from the start.")
     
-    return tramos
+    return tiers
 
-def mostrar_tabla(tabla):
-    tiene_tasa = "tasa_anual" in tabla[0]
+
+def show_schedule(schedule):
+    has_rate = "annual_rate" in schedule[0]
     
-    if tiene_tasa:
+    if has_rate:
         print("\n{:<5} {:<8} {:<12} {:<12} {:<12} {:<14} {:<12}".format(
-            "Mes", "Tasa%", "Cuota", "Interés", "Capital", "Abono Extra", "Saldo"
+            "Month", "Rate%", "Payment", "Interest", "Principal", "Extra Payment", "Balance"
         ))
         print("-" * 78)
-        for fila in tabla:
+        for row in schedule:
             print("{:<5} {:<8} {:<12.2f} {:<12.2f} {:<12.2f} {:<14.2f} {:<12.2f}".format(
-                fila["mes"], fila["tasa_anual"], fila["cuota"], fila["interes"],
-                fila["capital"], fila["abono_extra"], fila["saldo"]
+                row["month"], row["annual_rate"], row["payment"], row["interest"],
+                row["principal"], row["extra_payment"], row["balance"]
             ))
     else:
         print("\n{:<5} {:<12} {:<12} {:<12} {:<14} {:<12}".format(
-            "Mes", "Cuota", "Interés", "Capital", "Abono Extra", "Saldo"
+            "Month", "Payment", "Interest", "Principal", "Extra Payment", "Balance"
         ))
         print("-" * 70)
-        for fila in tabla:
+        for row in schedule:
             print("{:<5} {:<12.2f} {:<12.2f} {:<12.2f} {:<14.2f} {:<12.2f}".format(
-                fila["mes"], fila["cuota"], fila["interes"], fila["capital"],
-                fila["abono_extra"], fila["saldo"]
+                row["month"], row["payment"], row["interest"], row["principal"],
+                row["extra_payment"], row["balance"]
             ))
     
-    print(f"\nTotal de meses pagados: {len(tabla)}")
+    print(f"\nTotal months paid: {len(schedule)}")
 
-def preguntar_exportar(tabla):
-    respuesta = input("\n¿Quieres exportar esta tabla a Excel? (s/n): ").strip().lower()
-    if respuesta == "s":
-        nombre = input("Nombre del archivo (Enter para usar 'tabla_amortizacion.xlsx'): ").strip()
-        if nombre == "":
-            nombre = "tabla_amortizacion.xlsx"
-        if not nombre.endswith(".xlsx"):
-            nombre += ".xlsx"
-        archivo_generado = exportar_a_excel(tabla, nombre)
-        print(f"Archivo guardado como: {archivo_generado}")
 
-def mostrar_comparacion(resultado):
-    print("\n===== Comparación: Tasa Fija vs Tasa Variable =====")
-    print(f"Total pagado (tasa fija):      {resultado['total_pagado_fija']:.2f}")
-    print(f"Total pagado (tasa variable):  {resultado['total_pagado_variable']:.2f}")
-    print(f"Total interés (tasa fija):     {resultado['total_interes_fija']:.2f}")
-    print(f"Total interés (tasa variable): {resultado['total_interes_variable']:.2f}")
+def show_comparison(result):
+    print("\n===== Comparison: Fixed Rate vs Variable Rate =====")
+    print(f"Total paid (fixed rate):      {result['total_paid_fixed']:.2f}")
+    print(f"Total paid (variable rate):   {result['total_paid_variable']:.2f}")
+    print(f"Total interest (fixed rate):  {result['total_interest_fixed']:.2f}")
+    print(f"Total interest (variable rate): {result['total_interest_variable']:.2f}")
     
-    diferencia = resultado["diferencia"]
-    if diferencia > 0:
-        print(f"\nLa tasa variable resulta MÁS CARA por {diferencia:.2f}")
-    elif diferencia < 0:
-        print(f"\nLa tasa variable resulta MÁS BARATA por {abs(diferencia):.2f}")
+    difference = result["difference"]
+    if difference > 0:
+        print(f"\nThe variable rate is MORE EXPENSIVE by {difference:.2f}")
+    elif difference < 0:
+        print(f"\nThe variable rate is CHEAPER by {abs(difference):.2f}")
     else:
-        print("\nAmbos escenarios cuestan exactamente lo mismo.")
+        print("\nBoth scenarios cost exactly the same.")
 
-def flujo_amortizacion_normal():
-    monto, tasa_anual, plazo_meses = pedir_datos()
-    abonos_extra = pedir_abonos_extra()
-    tabla = generar_tabla_amortizacion(monto, tasa_anual, plazo_meses, abonos_extra)
-    mostrar_tabla(tabla)
-    preguntar_exportar(tabla)
 
-def flujo_comparacion():
-    monto = pedir_numero("Monto del préstamo: ", float)
-    plazo_meses = pedir_numero("Plazo en meses: ", int)
-    tasa_fija = pedir_numero("Tasa fija anual (%) para el escenario fijo: ", float)
-    tramos_variable = pedir_tramos_variable()
+def ask_export(schedule):
+    answer = input("\nDo you want to export this schedule to Excel? (y/n): ").strip().lower()
+    if answer == "y":
+        file_name = input("File name (Enter to use 'amortization_schedule.xlsx'): ").strip()
+        if file_name == "":
+            file_name = "amortization_schedule.xlsx"
+        if not file_name.endswith(".xlsx"):
+            file_name += ".xlsx"
+        generated_file = export_to_excel(schedule, file_name)
+        print(f"File saved as: {generated_file}")
+
+
+def regular_amortization_flow():
+    amount, annual_rate, term_months = ask_loan_data()
+    extra_payments = ask_extra_payments()
+    schedule = generate_amortization_schedule(amount, annual_rate, term_months, extra_payments)
+    show_schedule(schedule)
+    ask_export(schedule)
+
+
+def comparison_flow():
+    amount = ask_number("Loan amount: ", float)
+    term_months = ask_number("Term in months: ", int)
+    fixed_rate = ask_number("Fixed annual rate (%) for the fixed scenario: ", float)
+    variable_rate_tiers = ask_rate_tiers()
     
-    resultado = comparar_escenarios(monto, tasa_fija, tramos_variable, plazo_meses)
-    mostrar_comparacion(resultado)
+    result = compare_scenarios(amount, fixed_rate, variable_rate_tiers, term_months)
+    show_comparison(result)
+
 
 def main():
-    print("=== Calculadora de Amortización de Créditos ===\n")
-    print("1. Calcular tabla de amortización (tasa fija)")
-    print("2. Comparar tasa fija vs tasa variable")
+    print("=== Loan Amortization Calculator ===\n")
+    print("1. Calculate amortization schedule (fixed rate)")
+    print("2. Compare fixed rate vs variable rate")
     
-    opcion = input("\nElige una opción (1 o 2): ").strip()
+    option = input("\nChoose an option (1 or 2): ").strip()
     
-    if opcion == "1":
-        flujo_amortizacion_normal()
-    elif opcion == "2":
-        flujo_comparacion()
+    if option == "1":
+        regular_amortization_flow()
+    elif option == "2":
+        comparison_flow()
     else:
-        print("Opción no válida. Ejecuta el programa de nuevo y elige 1 o 2.")
+        print("Invalid option. Run the program again and choose 1 or 2.")
+
 
 if __name__ == "__main__":
     main()
