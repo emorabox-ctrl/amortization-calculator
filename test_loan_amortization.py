@@ -77,3 +77,20 @@ def test_export_to_excel_creates_file():
     assert os.path.exists(file_name)
     
     os.remove(file_name)
+
+def test_extra_payment_exceeding_balance_creates_credit_balance():
+    schedule = generate_amortization_schedule(100000, 12, 36, {6: 200000})
+    
+    # The loan should end right at month 6
+    assert len(schedule) == 6
+    
+    last_row = schedule[-1]
+    
+    # The extra payment applied should never exceed what was actually owed
+    assert last_row["extra_payment"] <= last_row["principal"] + last_row["extra_payment"] + last_row["credit_balance"]
+    
+    # There should be a credit balance, since 200000 is way more than the remaining balance
+    assert last_row["credit_balance"] > 0
+    
+    # The balance should be fully paid off
+    assert last_row["balance"] == 0

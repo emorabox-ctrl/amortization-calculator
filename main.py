@@ -96,6 +96,13 @@ def show_schedule(schedule):
     
     print(f"\nTotal months paid: {len(schedule)}")
 
+def show_credit_balance_warnings(schedule):
+    for row in schedule:
+        if row.get("credit_balance", 0) > 0.01:
+            print(f"\n⚠ Note: in month {row['month']}, the extra payment exceeded the "
+                  f"remaining balance. Credit balance in favor of the client: "
+                  f"{row['credit_balance']:.2f}")
+
 
 def show_comparison(result):
     print("\n===== Comparison: Fixed Rate vs Variable Rate =====")
@@ -130,6 +137,7 @@ def regular_amortization_flow():
     extra_payments = ask_extra_payments()
     schedule = generate_amortization_schedule(amount, annual_rate, term_months, extra_payments)
     show_schedule(schedule)
+    show_credit_balance_warnings(schedule)
     ask_export(schedule)
 
 

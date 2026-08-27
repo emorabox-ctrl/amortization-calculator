@@ -39,6 +39,14 @@ if option == "Amortization schedule":
         
         st.dataframe(schedule, use_container_width=True)
         
+        for row in schedule:
+            if row.get("credit_balance", 0) > 0.01:
+                st.warning(
+                    f"⚠ In month {row['month']}, the extra payment exceeded the "
+                    f"remaining balance. Credit balance in favor of the client: "
+                    f"{row['credit_balance']:.2f}"
+                )
+        
         file_name = export_to_excel(schedule, "amortization_schedule.xlsx")
         with open(file_name, "rb") as f:
             st.download_button(

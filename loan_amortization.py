@@ -45,11 +45,20 @@ def generate_amortization_schedule(amount, annual_rate, term_months, extra_payme
         
         principal = payment - interest
         extra = extra_payments.get(month, 0)
+        credit_balance = 0
         
-        # If the remaining balance is less than payment + extra, adjust to avoid overpaying
+        # If principal + extra is more than what's actually owed, cap it and
+        # record the leftover as a credit balance in favor of the client
         if principal + extra > balance:
-            principal = balance - extra if balance - extra > 0 else balance
-            extra = balance - principal if principal == balance else extra
+            total_reduction = principal + extra
+            credit_balance = total_reduction - balance
+            
+            if extra >= balance:
+                # The extra payment alone covers (or exceeds) the whole balance
+                extra = balance
+                principal = 0
+            else:
+                principal = balance - extra
         
         balance = balance - principal - extra
         if balance < 0:
@@ -61,7 +70,8 @@ def generate_amortization_schedule(amount, annual_rate, term_months, extra_payme
             "interest": interest,
             "principal": principal,
             "extra_payment": extra,
-            "balance": balance
+            "balance": balance,
+            "credit_balance": credit_balance
         })
         
         month += 1
@@ -104,10 +114,17 @@ def generate_variable_rate_schedule(amount, rate_tiers, term_months, extra_payme
         
         principal = payment - interest
         extra = extra_payments.get(month, 0)
+        credit_balance = 0
         
         if principal + extra > balance:
-            principal = balance - extra if balance - extra > 0 else balance
-            extra = balance - principal if principal == balance else extra
+            total_reduction = principal + extra
+            credit_balance = total_reduction - balance
+            
+            if extra >= balance:
+                extra = balance
+                principal = 0
+            else:
+                principal = balance - extra
         
         balance = balance - principal - extra
         if balance < 0:
@@ -120,7 +137,8 @@ def generate_variable_rate_schedule(amount, rate_tiers, term_months, extra_payme
             "interest": interest,
             "principal": principal,
             "extra_payment": extra,
-            "balance": balance
+            "balance": balance,
+            "credit_balance": credit_balance
         })
         
         month += 1
