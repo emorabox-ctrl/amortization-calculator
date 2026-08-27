@@ -3,7 +3,8 @@
 Python program that calculates a loan's amortization schedule, showing 
 payment, interest, principal, and remaining balance month by month. 
 Includes support for extra payments, fixed vs. variable rate comparison, 
-and exporting results to Excel.
+exporting results to Excel, and an interactive web interface built with 
+Streamlit.
 
 ## Motivation
 
@@ -21,20 +22,19 @@ domain knowledge to build a useful tool from scratch.
   user-defined rate tiers), including automatic payment recalculation when 
   the rate changes
 - Export of the amortization schedule to an Excel file (.xlsx)
-- Interactive menu to choose between a simple amortization calculation or 
-  a scenario comparison
+- Interactive command-line menu, plus a web app built with Streamlit
 - User input validation (rejects invalid text and negative values)
 - Suite of 9 automated tests with pytest
 
-## How to run it
+## Requirements
 
-Requirements: Python 3.x, along with the `openpyxl` library:
+Python 3.x, plus the dependencies listed in `requirements.txt`:
 
 ```bash
-python -m pip install openpyxl
+python -m pip install -r requirements.txt
 ```
 
-Then run the program:
+## How to run it (command line)
 
 ```bash
 python main.py
@@ -52,6 +52,18 @@ Asks for amount, term, a reference fixed rate, and the variable rate tiers
 (month the rate changes and new rate). Shows the total paid and total 
 interest for each scenario, and which one is cheaper.
 
+## Web app (Streamlit)
+
+There's also an interactive web version of this calculator:
+
+```bash
+streamlit run app.py
+```
+
+This opens a browser-based interface where you can calculate amortization 
+schedules, simulate extra payments, compare fixed vs variable rates, and 
+download the results as Excel — all without using the terminal.
+
 ## How to run the tests
 
 ```bash
@@ -60,11 +72,14 @@ python -m pytest
 
 ## Project structure
 
-- `main.py`: user interaction (menu, data input, results display)
+- `main.py`: command-line interaction (menu, data input, results display)
+- `app.py`: interactive web interface built with Streamlit
 - `loan_amortization.py`: calculation logic (payment, amortization schedule, 
   extra payments, variable rate, scenario comparison, Excel export)
 - `test_loan_amortization.py`: automated tests with pytest
+- `requirements.txt`: project dependencies
 
 ## Future improvements
 
-- Simple web interface with Streamlit
+- Deploy the Streamlit app online (e.g. Streamlit Community Cloud)
+- Add charts to visualize balance and interest over time
