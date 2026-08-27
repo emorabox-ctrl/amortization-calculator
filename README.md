@@ -1,5 +1,7 @@
 # Loan Amortization Calculator
 
+**🔗 Live app:** https://calculadora-amortizacion-6argjr7evtng8uvwch5rpg.streamlit.app/
+
 Python program that calculates a loan's amortization schedule, showing 
 payment, interest, principal, and remaining balance month by month. 
 Includes support for extra payments, fixed vs. variable rate comparison, 
@@ -54,7 +56,8 @@ interest for each scenario, and which one is cheaper.
 
 ## Web app (Streamlit)
 
-There's also an interactive web version of this calculator:
+There's also an interactive web version of this calculator, deployed at 
+the link above. To run it locally instead:
 
 ```bash
 streamlit run app.py
@@ -81,5 +84,4 @@ python -m pytest
 
 ## Future improvements
 
-- Deploy the Streamlit app online (e.g. Streamlit Community Cloud)
 - Add charts to visualize balance and interest over time
