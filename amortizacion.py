@@ -36,8 +36,3 @@ def generar_tabla_amortizacion(monto, tasa_anual, plazo_meses):
         })
     
     return tabla
-if __name__ == "__main__":
-    tabla = generar_tabla_amortizacion(100000, 12, 36)
-    
-    for fila in tabla:
-        print(f"Mes {fila['mes']}: Cuota={fila['cuota']:.2f}, Interés={fila['interes']:.2f}, Capital={fila['capital']:.2f}, Saldo={fila['saldo']:.2f}")
